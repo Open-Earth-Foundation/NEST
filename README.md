@@ -44,6 +44,13 @@ of it is experimental and changes quickly. Things move here when their owner
 judges them stable enough to be useful to others. Each document carries a
 status line. "Draft" means exactly that: open for comment, not a commitment.
 
+## Layout
+
+- `events/`: material from talks, workshops and symposia where NEST is
+  presented or discussed, one folder per event.
+- `docs/`: design notes and specifications, to be added as the first ones
+  are ready for others.
+
 ## Status
 
 NEST started in 2026 and is at an early stage. The first experiments in
