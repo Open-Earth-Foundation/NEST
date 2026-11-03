@@ -1,0 +1,855 @@
+{
+  "$defs": {
+    "BacktrackReason": {
+      "description": "Why an iteration's output was discarded and state rolled back.",
+      "enum": [
+        "tool_failure",
+        "halt_retract",
+        "output_discard",
+        "infeasible_state"
+      ],
+      "title": "BacktrackReason",
+      "type": "string"
+    },
+    "BacktrackRecord": {
+      "description": "Output of ``from_iteration`` was discarded; state rolled back to\n``to_iteration``. ``recovered_silently`` marks a retry the agent made\nwithout surfacing the failure (#74 item 3).",
+      "properties": {
+        "discarded_output_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Discarded Output Hash"
+        },
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "from_iteration": {
+          "minimum": 0,
+          "title": "From Iteration",
+          "type": "integer"
+        },
+        "reason": {
+          "$ref": "#/$defs/BacktrackReason"
+        },
+        "recovered_silently": {
+          "default": false,
+          "title": "Recovered Silently",
+          "type": "boolean"
+        },
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "number"
+        },
+        "to_iteration": {
+          "minimum": 0,
+          "title": "To Iteration",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "session_id",
+        "from_iteration",
+        "to_iteration",
+        "reason"
+      ],
+      "title": "BacktrackRecord",
+      "type": "object"
+    },
+    "ChoiceCandidate": {
+      "description": "One alternative available at a choice point.\n\nScores are optional: ``efe`` is true expected free energy in nats (lower\nis better \u2014 the project sign convention), ``probability`` the selection\nprobability if a policy posterior exists, ``heuristic`` any other score.",
+      "properties": {
+        "descriptor": {
+          "description": "Tool name, 'refine', 'halt', \u2026",
+          "minLength": 1,
+          "title": "Descriptor",
+          "type": "string"
+        },
+        "efe": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Efe"
+        },
+        "heuristic": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Heuristic"
+        },
+        "kind": {
+          "$ref": "#/$defs/ChoiceKind"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "probability": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Probability"
+        }
+      },
+      "required": [
+        "kind",
+        "descriptor"
+      ],
+      "title": "ChoiceCandidate",
+      "type": "object"
+    },
+    "ChoiceKind": {
+      "description": "What kind of alternative a candidate at a choice point is.",
+      "enum": [
+        "tool",
+        "subagent",
+        "refine",
+        "decision",
+        "halt"
+      ],
+      "title": "ChoiceKind",
+      "type": "string"
+    },
+    "ChoicePointRecord": {
+      "description": "The full set of alternatives considered at one decision, plus the pick.\n\nEmitted at decision time \u2014 the one non-negotiable of the design. Not\nreconstructable after the fact.\n\nA parallel decision (one model response selecting several tools) is ONE choice point with selected_indices covering each pick; every resulting ToolCallRecord links back via choice_point_event_id + candidate_index.",
+      "properties": {
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/ChoiceCandidate"
+          },
+          "minItems": 1,
+          "title": "Candidates",
+          "type": "array"
+        },
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "iteration": {
+          "minimum": 0,
+          "title": "Iteration",
+          "type": "integer"
+        },
+        "selection_reason": {
+          "default": "",
+          "title": "Selection Reason",
+          "type": "string"
+        },
+        "selection_source": {
+          "$ref": "#/$defs/SelectionSource",
+          "default": "model"
+        },
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "number"
+        },
+        "selected_indices": {
+          "title": "Selected Indices",
+          "description": "Indices into candidates for EVERY candidate the model selected in this decision, ordered as they appear in the model response (not execution or completion order). A single-call decision is a one-element array.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 1
+        },
+        "question_id": {
+          "type": "string"
+        },
+        "provider_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Provider-defined confidence; not measured task accuracy or selected-option probability."
+        },
+        "probability_semantics": {
+          "type": "string",
+          "description": "Meaning of candidate probabilities, e.g. provider_choice_distribution."
+        }
+      },
+      "required": [
+        "session_id",
+        "iteration",
+        "candidates",
+        "selected_indices"
+      ],
+      "title": "ChoicePointRecord",
+      "type": "object"
+    },
+    "AgentStepRecord": {
+      "description": "Emitted once per agent step (one reasoning turn and its tool calls).\n\nCan be used as a streaming event, appended to logs, or fed into a\nreal-time observer.  All events within one session share the same\n``session_id``.",
+      "properties": {
+        "backtracks": {
+          "items": {
+            "$ref": "#/$defs/BacktrackRecord"
+          },
+          "title": "Backtracks",
+          "type": "array"
+        },
+        "choice_points": {
+          "items": {
+            "$ref": "#/$defs/ChoicePointRecord"
+          },
+          "title": "Choice Points",
+          "type": "array"
+        },
+        "cost_usd": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cost Usd"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "agent_role": {
+          "default": "actor",
+          "description": "Role of the model participant that made this decision.",
+          "enum": [
+            "actor",
+            "critic",
+            "reader",
+            "discovery"
+          ],
+          "title": "Agent Role",
+          "type": "string"
+        },
+        "iteration": {
+          "description": "Zero-based iteration index",
+          "minimum": 0,
+          "title": "Iteration",
+          "type": "integer"
+        },
+        "latency_ms": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Latency Ms",
+          "type": "number"
+        },
+        "model_id": {
+          "description": "LLM model used for this iteration",
+          "title": "Model Id",
+          "type": "string"
+        },
+        "parent_session_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Session Id"
+        },
+        "prompt_text": {
+          "default": "",
+          "description": "Prompt sent to the model",
+          "title": "Prompt Text",
+          "type": "string"
+        },
+        "provider_name": {
+          "default": "unknown",
+          "title": "Provider Name",
+          "type": "string"
+        },
+        "raw_output": {
+          "default": "",
+          "description": "Raw text returned by model",
+          "title": "Raw Output",
+          "type": "string"
+        },
+        "refined_output": {
+          "default": "",
+          "description": "Post-processed / extracted content",
+          "title": "Refined Output",
+          "type": "string"
+        },
+        "session_id": {
+          "description": "Parent session identifier",
+          "title": "Session Id",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/IterationStatus",
+          "default": "running"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "number"
+        },
+        "token_usage": {
+          "$ref": "#/$defs/TokenUsage"
+        },
+        "tool_calls": {
+          "items": {
+            "$ref": "#/$defs/ToolCallRecord"
+          },
+          "title": "Tool Calls",
+          "type": "array"
+        },
+        "uncertainty": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UncertaintySignal"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "wall_clock_start": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wall Clock Start"
+        },
+        "experiment": {
+          "type": "object",
+          "description": "Optional experiment provenance. Provider-call records carry inference usage; execution envelopes link selected decisions to dispatched tools and omit duplicate usage.",
+          "properties": {
+            "accounting_scope": {
+              "enum": [
+                "provider_call",
+                "execution_envelope"
+              ]
+            },
+            "decision_id": {
+              "type": "string"
+            },
+            "role": {
+              "type": "string"
+            },
+            "cost_basis": {
+              "type": "string"
+            },
+            "configuration": {
+              "type": "object"
+            },
+            "usage_exposed": {
+              "type": "boolean"
+            },
+            "request_hash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "accounting_scope"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "session_id",
+        "iteration",
+        "model_id"
+      ],
+      "title": "AgentStepRecord",
+      "type": "object"
+    },
+    "IterationStatus": {
+      "description": "Status of a single agent step.",
+      "enum": [
+        "running",
+        "complete",
+        "error",
+        "halted",
+        "limit_reached"
+      ],
+      "title": "IterationStatus",
+      "type": "string"
+    },
+    "HaltReason": {
+      "description": "Why the agent run stopped.",
+      "enum": [
+        "explicit_halt",
+        "max_iterations",
+        "convergence",
+        "error",
+        "empty_output",
+        "tool_failure"
+      ],
+      "title": "HaltReason",
+      "type": "string"
+    },
+    "ReturnRecord": {
+      "description": "A child session returned to its parent, with rolled-up cost.",
+      "properties": {
+        "child_session_id": {
+          "title": "Child Session Id",
+          "type": "string"
+        },
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "halt_reason": {
+          "$ref": "#/$defs/HaltReason",
+          "default": "max_iterations"
+        },
+        "latency_ms": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Latency Ms",
+          "type": "number"
+        },
+        "level": {
+          "minimum": 0,
+          "title": "Level",
+          "type": "integer"
+        },
+        "parent_session_id": {
+          "title": "Parent Session Id",
+          "type": "string"
+        },
+        "success": {
+          "default": false,
+          "title": "Success",
+          "type": "boolean"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "number"
+        },
+        "token_usage": {
+          "$ref": "#/$defs/TokenUsage"
+        }
+      },
+      "required": [
+        "parent_session_id",
+        "child_session_id",
+        "level"
+      ],
+      "title": "ReturnRecord",
+      "type": "object"
+    },
+    "SelectionSource": {
+      "description": "Who/what picked the selected candidate at a choice point.",
+      "enum": [
+        "model",
+        "efe_bridge",
+        "scripted",
+        "fallback"
+      ],
+      "title": "SelectionSource",
+      "type": "string"
+    },
+    "SpawnRecord": {
+      "description": "A parent session spawned a child (sub-agent).",
+      "properties": {
+        "child_session_id": {
+          "title": "Child Session Id",
+          "type": "string"
+        },
+        "event_id": {
+          "title": "Event Id",
+          "type": "string"
+        },
+        "level": {
+          "description": "Depth of the child (root parent = 0)",
+          "minimum": 0,
+          "title": "Level",
+          "type": "integer"
+        },
+        "parent_session_id": {
+          "title": "Parent Session Id",
+          "type": "string"
+        },
+        "task_summary": {
+          "default": "",
+          "title": "Task Summary",
+          "type": "string"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "number"
+        }
+      },
+      "required": [
+        "parent_session_id",
+        "child_session_id",
+        "level"
+      ],
+      "title": "SpawnRecord",
+      "type": "object"
+    },
+    "TokenUsage": {
+      "description": "Token consumption stats for one LLM call.",
+      "properties": {
+        "cache_read_tokens": {
+          "description": "Input tokens read from provider prompt cache, already included in prompt_tokens. Absent means unknown, not zero.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "cache_write_tokens": {
+          "description": "Input tokens written to provider prompt cache, already included in prompt_tokens. Not an additional token charge; provider cost remains authoritative. Absent means unknown.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "cache_usage_source": {
+          "description": "provider preserves reported zero and field presence; sdk_positive_counts recovers positive normalized counters from legacy SDK responses whose zeros may be defaults.",
+          "enum": [
+            "provider",
+            "sdk_positive_counts"
+          ],
+          "type": "string"
+        },
+        "completion_tokens": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Completion Tokens",
+          "type": "integer"
+        },
+        "prompt_tokens": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Prompt Tokens",
+          "type": "integer"
+        },
+        "total_tokens": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total Tokens",
+          "type": "integer"
+        }
+      },
+      "title": "TokenUsage",
+      "type": "object"
+    },
+    "ToolCallRecord": {
+      "description": "Record of a single tool call during an agent step. Links to its originating decision via choice_point_event_id + candidate_index; a call dropped by a one-call budget appears with status: skipped, so drop and queue harness policies serialize under the same shape.",
+      "properties": {
+        "args": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Parsed arguments, or null when the model emitted invalid JSON or a non-object value. The original provider response remains in raw_output.",
+          "title": "Args",
+          "default": null
+        },
+        "attempt": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Attempt",
+          "type": "integer"
+        },
+        "error_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Message"
+        },
+        "hash_policy": {
+          "const": "tool-outcome/v1",
+          "description": "Version of the tool hash contract. Absence retains the producer's historical policy; never reinterpret unmarked hashes. See the contract README for preimages and exact JSON encoding.",
+          "type": "string"
+        },
+        "input_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Hash"
+        },
+        "latency_ms": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Latency Ms",
+          "type": "number"
+        },
+        "output_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Hash"
+        },
+        "result": {
+          "default": null,
+          "description": "Return value (serialisable)",
+          "title": "Result"
+        },
+        "status": {
+          "$ref": "#/$defs/ToolCallStatus",
+          "default": "success"
+        },
+        "tool_name": {
+          "description": "Name of the tool that was called",
+          "title": "Tool Name",
+          "type": "string"
+        },
+        "tool_kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "nest"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Execution owner; null means the model selected a call that was not issued.",
+          "title": "Tool Kind"
+        },
+        "choice_point_event_id": {
+          "title": "Choice Point Event Id",
+          "description": "event_id of the ChoicePointRecord this call realizes.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "candidate_index": {
+          "title": "Candidate Index",
+          "description": "Index into that choice point's candidates identifying which selected candidate this call executes \u2014 the explicit mapping that survives repeated same-tool calls, retries, skips, and out-of-order completion.",
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "tool_name"
+      ],
+      "title": "ToolCallRecord",
+      "type": "object"
+    },
+    "ToolCallStatus": {
+      "description": "Outcome of a tool call within an iteration.",
+      "enum": [
+        "success",
+        "failure",
+        "skipped"
+      ],
+      "title": "ToolCallStatus",
+      "type": "string"
+    },
+    "UncertaintySignal": {
+      "description": "Whatever confidence/uncertainty signal the harness exposed for a step.\n\n``exposed=False`` is a first-class, honest value (#74 item 5): the shipped\nproviders pass a temperature and nothing else. When not exposed, the\nsignal fields must be ``None`` \u2014 an unexposed signal cannot carry values.\n``token_entropy`` is in nats.",
+      "properties": {
+        "exposed": {
+          "default": false,
+          "title": "Exposed",
+          "type": "boolean"
+        },
+        "logprob_mean": {
+          "anyOf": [
+            {
+              "maximum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Logprob Mean"
+        },
+        "self_reported_confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Self Reported Confidence"
+        },
+        "source": {
+          "default": "provider",
+          "title": "Source",
+          "type": "string"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        },
+        "token_entropy": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Token Entropy"
+        }
+      },
+      "title": "UncertaintySignal",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Open-Earth-Foundation/NEST-workspace/packages/contracts/agent-trace/v0.1/schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "One JSON object per line of an agent-run trace (flat JSONL); this root schema IS the line contract \u2014 record_type selects the payload (AgentStepRecord | SpawnRecord | ReturnRecord). Emitted by the harness at decision time, never self-reported by the model. Field list: NEST-workspace issue #74; rationale: packages/contracts/agent-trace/README.md.",
+  "title": "NEST agent-trace contract v0.1 (discovery worker role)",
+  "oneOf": [
+    {
+      "allOf": [
+        {
+          "properties": {
+            "record_type": {
+              "const": "iteration"
+            }
+          },
+          "required": [
+            "record_type"
+          ]
+        },
+        {
+          "$ref": "#/$defs/AgentStepRecord"
+        }
+      ]
+    },
+    {
+      "allOf": [
+        {
+          "properties": {
+            "record_type": {
+              "const": "spawn"
+            }
+          },
+          "required": [
+            "record_type"
+          ]
+        },
+        {
+          "$ref": "#/$defs/SpawnRecord"
+        }
+      ]
+    },
+    {
+      "allOf": [
+        {
+          "properties": {
+            "record_type": {
+              "const": "return"
+            }
+          },
+          "required": [
+            "record_type"
+          ]
+        },
+        {
+          "$ref": "#/$defs/ReturnRecord"
+        }
+      ]
+    }
+  ],
+  "type": "object"
+}

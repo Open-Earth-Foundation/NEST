@@ -1,0 +1,182 @@
+# Status: Draft
+# Source: Open-Earth-Foundation/NEST-workspace (private) at commit 6c14c736cef574aaa27512babd1dffdfbc0f1fb2, path docs/programme/partners/aii/deliverables/2026-08/AII-D02.boundary.yaml. Copied unchanged below this line. Links into the workspace do not resolve here.
+# AII-D02 — boundary fields for the MESSAGEix wrapper blanket (DRAFT sidecar)
+# One entry per variable that crosses the blanket. Companion to AII-D02-messageix-wrapper.gnn.md
+# (same folder). Fields per the AII-D10 boundary ontology v0.1 (PR #146, not merged) plus
+# `mapping_rule`. This is AII's draft; nothing here is IIASA's answer unless `source: iiasa-…`.
+#
+# What lives here vs on the seam: this file holds MESSAGEix's NATIVE declaration of each variable
+# (its own unit, convention, index, step). Anything about how a value is translated for STURM —
+# temporal alignment, spatial exchange, allocation basis, mapping rule — lives once, on the seam
+# (AII-D02-D03-seam-messageix-sturm.yaml), and is referenced with `see:`.
+#
+# What lives here vs in the GNN spec: the spec owns names, dims, types, roles and connections.
+# This file owns units, conventions, supports, status and provenance. `role` is repeated here
+# only so it can be checked against the spec's ActInfOntologyAnnotation; if they disagree, the spec wins.
+#
+# Status vocabulary: defined once, in AII-D02-D03-seam-messageix-sturm.yaml.
+# Optional fields added 2026-10-04 (`level`, `uncertainty`, `scenario_role`, `bounds`): defined there too.
+
+blanket: AII-D02
+model: >-
+  MESSAGEix-GLOBIOM. For EXP-01 the exchange point is the R12 node WEU (IIASA, 2026-09-22, in their
+  words: "MESSAGEix cut out the Western European region"); the "national" side is a regional aggregate.
+spec: AII-D02-messageix-wrapper.gnn.md
+seam: AII-D02-D03-seam-messageix-sturm.yaml
+schema_version: draft-0
+prepared_by: AII (Holly Grimm)
+prepared_on: 2026-09-22
+updated: "2026-10-16 (d temporal support: the first model year settled for the first pass — 2030; a 2020 start is a full rebuild of the cutout, possible from 2026-10-28 (Siddharth Joshi, #147 issuecomment-6207059197); seam pairs.demand.translation.transform.first_model_year declared. The selected run is solved with MESSAGE, not MESSAGE-MACRO — the cutout carries no MACRO calibration (seam reference.rung_B_placeholders.solve_type)). 2026-10-15 (d temporal support: the first model year is now a question — Yiyi Ju's two routes for the benchmark-year alignment, shift to 2020 or align at 2030, put to Siddharth Joshi and Francis Li; seam pairs.demand.translation.transform.first_model_year). 2026-10-13 review fixes (Daniel Friedman): d and p supports relabelled — selected run (the cutout: 12 model years 2030–2110, plain node WEU) vs public-linkage history (13 years 2020–2100, R11/R12 names); seam_scenario note no longer names the Zenodo candidate. 2026-10-13 (OEF's reproduction on #147: GAMS 54.5.0 / message_ix 3.11.1 as a gams_version candidate; price table matched except three points; HiGHS differs at 23). 2026-10-12 (run_identity declared from the NEST_EXP1 package; p currency year USD2005 per the guide; d level/unit confirmed on the cutout). 2026-10-09 (d: commodity list and level declared via Shu Nawawi #147; year set observed; p: temporal support observed, floor read from project/ngfs_p6_bmt; run_identity notes). 2026-10-04 (units now live only here, not in the spec; added lam, level, uncertainty, scenario_role, numeric bounds; run tied to the seam's scenario id). 2026-09-26 (blanket = native only; one status vocabulary; measured values tagged)"
+sources:
+  - docs/research/boundary-convention-benchmarks.md
+  - "AII-D10 boundary ontology v0.1 — PR #146 (not merged)"
+  - "IIASA, 2026-09-22 coupling meeting — recorded on #147"
+  - "AII run 2026-07-14 on an AII workstation: public MESSAGEix Austria tutorial + shipped STURM (not the reference run)"
+
+run_identity:                      # the reference run these values will be pinned to — 2026-10-12: the reference MODEL is declared (Sidd's NEST_EXP1 package); a coupled run on it does not exist yet
+  platform:          {value: "local ixmp HSQLDB created by the quickstart notebook (jdbc / hsqldb, path WORK_DIR/ixmp_db/weu_nest_exp1)", status: declared, source: "iiasa-2026-10-12 (notebook cell 6)"}
+  model:             {value: "WEU_NEST_EXP1", status: declared, source: "iiasa-2026-10-12 (notebook Settings cell)"}
+  scenario:          {value: "SSP2_Baseline_NEST_EXP1", status: declared, source: "iiasa-2026-10-12 (notebook Settings cell)", note: "loaded from SSP2_Baseline_WEU_NEST_EXP1.xlsx with read_excel(add_units=True, init_items=True); version = new on each load"}
+  version:           {value: "NEST_WEU_EXP1_V1 (package, 2026-10-08); scenario version increments per load", status: declared, source: "iiasa-2026-10-12"}
+  messageix_version: {value: "message-ix 3.11 (ixmp 3.11.1), conda-forge; the MESSAGE GAMS code of that environment", status: declared, source: "iiasa-2026-10-12 (guide step 2; notebook cell 10)"}
+  node:              {value: "WEU — the only region; map_spatial_hierarchy: region WEU -> World", status: declared, source: "NEST_EXP1 xlsx node / map_node sheets (read 2026-10-12)"}
+  years:             {value: "1950–2110 in the set; history to 2025; model years 2030–2060 by 5, 2070–2110 by 10", status: declared, source: "NEST_EXP1 xlsx year / cat_year sheets; guide §5"}
+  discount_rate:     {value: 0.05, status: declared, source: "NEST_EXP1 xlsx interestrate sheet (0.05 for every year)"}
+  reproduction_check: {value: "OBJ = 183 375.9 million USD2005; RC final energy by fuel = the guide's §5.1 table (15.38 EJ in 2030). Performed by OEF on 2026-10-13: the package loads (single node WEU, 2030–2110, no resid/comm split) and solves under the GAMS evaluation licence with CPLEX, matching the guide. Detail (#147 issuecomment-6154237946): final energy by fuel matches with CPLEX and with HiGHS; CPLEX prices match the guide's table except three points (coal and fuel oil 2030, light oil 2040); HiGHS differs from CPLEX at 23 price points", status: declared, source: "iiasa-2026-10-12 (guide §5); OEF (Francis Li), 2026-10-13"}
+  solver:            {value: "GAMS 45 or newer with CPLEX; ~16 GB RAM", status: declared, source: "iiasa-2026-10-12 (guide step 1: 'the free demo licence is too small for this model')", note: "duals may differ on degenerate LPs. NEST holds no GAMS/CPLEX licence (OEF compute-environment design: the MESSAGE solve is delegated to IIASA); a 30-day GAMS evaluation licence (CPLEX + HiGHS, cloud use) was granted to OEF's AWS setup on 2026-10-09"}
+  gams_version:      {value: null, status: pending_owner, candidate: {value: "GAMS 54.5.0 with message_ix 3.11.1 — OEF's reproduction environment, not IIASA's", status: observed, source: "OEF (Francis Li), #147 issuecomment-6154237946, 2026-10-13"}, note: "the version behind the guide's tables is IIASA's to state"}
+  seam_scenario:     {see: "AII-D02-D03-seam-messageix-sturm.yaml#scenario.id", note: "the future this run belongs to; AII-D03's run must resolve to the same id. Resolves to the EXP1 cutout (declared 2026-10-12). The Zenodo R11 baseline named here until 2026-10-12 is the seam's scenario.id.earlier_candidate: a public side check, not the selected run"}
+
+variables:
+
+  d:
+    role: sensory                   # crosses INTO MESSAGEix, from STURM
+    counterpart: AII-D03.d
+    description: "final energy demand per commodity, written to the MESSAGEix `demand` parameter — 14 commodities per subsector ({resid,comm}_{heat,hotwater}_{six carriers}, _cool_electr, _other_uses_electr), declared 2026-10-09 (Shu Nawawi, #147); the list lives on the seam (pairs.demand.mapping_rule.fuel_to_commodity)"
+    unit:
+      value: GWa
+      status: observed
+      source: aii-run-2026-07-14
+      note: "the tutorial's `demand` is GWa, and STURM's output arrived in that schema in GWa; our earlier GWh was a guess. Confirm for the reference run."
+    convention:
+      value: annual energy, calendar-year total per model year
+      status: guess
+    level:
+      value: useful
+      status: declared
+      source: "iiasa-2026-10-09 (Shu Nawawi, #147: 'the aligned building demands are added to MESSAGEix at the useful level'); iiasa/message-ix-models@9d5c68a __init__.py (pre_solve); aii-run-2026-07-14"
+      note: "FINAL energy entered at level `useful` on purpose, behind one-to-one technologies; no conversion efficiency between. See the seam, pairs.demand.mapping_rule.level (two approaches exist; this is the linked implementation's)."
+    temporal_support:
+      value: "one value per model year, one annual time slice (time = year)"
+      status: observed
+      selected_run: {value: "the EXP1 cutout's model years: 2030–2060 by 5 and 2070–2110 by 10 (12 model years; history to 2025) — run_identity.years", status: declared, source: "NEST_EXP1 xlsx year / cat_year sheets (read 2026-10-12); guide §5"}
+      public_linkage_history: {value: "STURM's WEU runner and the public linkage emit 2020–2060 by 5 and 2070–2100 by 10 (13 years), with 2110 extrapolated by the linkage (pre_solve)", status: observed, source: "iiasa/message-ix-buildings@e560643 run_STURM_resid_WEU_2026.R (years_to_run); sturm/output/report_MESSAGE_resid_WEU_SSP2.csv (year, time columns); iiasa/message-ix-models@9d5c68a __init__.py (pre_solve)"}
+      note: "native to MESSAGEix. The two sets overlap on 2030–2100 (11 years): STURM's 2020 and 2025 fall in the cutout's history, and 2110 is extrapolated (seam: pairs.demand.translation.temporal_alignment; reference.rung_B_placeholders.year_set). The spec dims carry num_periods: 13 = STURM's emitted years; which period set the coupled run uses is the rung-B spec's to fix and is not declared by anyone yet. Relabelled 2026-10-13 after Daniel Friedman's review: the selected run and the public-linkage history are now separate leaves. 2026-10-15: the first model year itself is in question — the IEA benchmark year is 2020 and alignment only makes sense where fmy = bmy, so Yiyi Ju offers shifting the cutout's first model year to 2020 (Sidd: a rebuild or a setting?) or aligning at 2030 (seam: pairs.demand.translation.transform.first_model_year, pending_owner). 2026-10-16: settled for the first pass — fmy stays 2030 (OEF's run choice; a 2020 start is a full rebuild, Siddharth Joshi); seam transform.first_model_year declared"
+    spatial_support:
+      value: {native: "MESSAGE node; for EXP-01 the region WEU — in the selected run a single node named plain WEU under World (run_identity.node), which IIASA's 2026-09-22 statement called the R12 node WEU"}
+      status: declared
+      source: "iiasa-2026-09-22; NEST_EXP1 xlsx node / map_node sheets (read 2026-10-12)"
+    translation: {see: "AII-D02-D03-seam-messageix-sturm.yaml#pairs.demand"}   # alignment, spatial exchange, allocation basis, mapping rule
+    validity_envelope:
+      value: "feasible demand delta bounded by MESSAGEix's dynamic constraints: observed corridor ≲ +5 % against 5 %/yr growth caps"
+      status: observed
+      source: aii-run-2026-07-14
+      note: "anchor year must sit outside the coupling boundary"
+      bounds:                        # numeric form, so a run can be flagged as outside the envelope
+        quantity: "demand delta relative to baseline, per commodity · model year"
+        min: null
+        max: 0.05
+        status: observed
+        source: aii-run-2026-07-14
+        note: "upper bound approximate (≲ +5 %); lower bound not measured. Beyond it expect binding growth caps or an infeasible solve."
+    uncertainty: {value: null, kind: null, status: n_a, note: "reserved: a variance or range per element, for precision-weighted updates (tier 2). Unused while the exchange is point values."}
+
+  cap:
+    role: sensory                   # imposed policy constraint (hierarchy regime, #87 Q-13); platform-facing, no STURM counterpart
+    counterpart: null
+    scenario_role: {value: lever, status: proposed, note: "a policy choice varied to test strategies, not a state inferred from STURM"}
+    description: emissions cap, entering as a MESSAGEix emission bound
+    unit:              {value: "t CO2/yr (per-year bound) | t CO2 (budget)", status: guess}
+    convention:        {value: "bound on `emission` — which emission type, which type_tec (all vs building-related)", status: pending_owner}
+    temporal_support:  {value: "per model year OR cumulative budget over the horizon — different constraints, different duals", status: pending_owner}
+    spatial_support:   {value: node, status: declared, source: "wrapper-spec (through 2026-09-26; now held only here)"}
+    allocation_basis:  {value: null, status: n_a, note: "only if a national target is split across several nodes"}
+    mapping_rule:      {value: "which years (if stated for one year, e.g. 2030) and which sectors sit inside the bound", status: pending_owner}
+    validity_envelope: {value: null, status: guess}
+
+  p:
+    role: active                    # crosses OUT to STURM
+    counterpart: AII-D03.p
+    description: commodity prices — the PRICE_COMMODITY duals of the demand balance
+    unit:
+      value: USD_2010 / kWa
+      status: observed
+      source: "iiasa/message-ix-models@9d5c68a message_ix_models/data/report/global.yaml (units.apply: PRICE_COMMODITY) — pointer: Francis Li, 2026-10-06"
+      note: "assigned by the reporting config, not stored on the variable; the thing to confirm is that the reference run uses this config. PRICE_EMISSION and tax_emission are USD_2005 there — a different currency year. STURM takes the table as is and divides by 31.71 (see the seam); our earlier USD/MWh was a guess"
+    convention:
+      value: {discount_rate: 0.05, reported_as: "undiscounted per year: PRICE_COMMODITY = the commodity-balance dual / df_period(year) (iiasa/message_ix message_ix/model/MESSAGE/model_solve.gms)", capital_annualisation: null, currency_year: "USD2005 per the EXP1 guide ('USD2005 per kWa … 1 USD/kWa ≈ 0.114 USD/MWh'); the public reporting config labels PRICE_COMMODITY USD_2010 — to confirm which applies"}
+      status: pending_owner
+      note: "discount_rate declared from the cutout's interestrate sheet (2026-10-12); reported_as observed from the GAMS source (2026-10-06); annualisation still the owner's. Benchmarks finding 1: three engines, three CO2 shadow prices differing >50 % through annualisation alone"
+    level:
+      value: final
+      status: observed
+      source: "iiasa/message-ix-models@9d5c68a message_ix_models/model/buildings/build.py (get_prices filters level=final)"
+      note: "so the dual STURM receives is the fuel price at final; demand is entered at useful with one-to-one technologies between (see the seam, pairs.demand.mapping_rule.level). Reference run to confirm"
+    temporal_support:
+      value: "per model year, one annual slice (time = year)"
+      status: observed
+      selected_run: {value: "the EXP1 cutout's 12 model years 2030–2110 — run_identity.years", status: declared, source: "NEST_EXP1 xlsx year sheet (read 2026-10-12)"}
+      public_linkage_history: {value: "STURM's reference price input carries 2020–2110, with time = year", status: observed, source: "iiasa/message-ix-buildings@e560643 sturm/data/input_prices_R12.csv (year, time columns)"}
+    spatial_support:
+      selected_run: {value: "one MESSAGE node named plain WEU under World — run_identity.node", status: declared, source: "NEST_EXP1 xlsx node sheet (read 2026-10-12); iiasa-2026-09-22"}
+      public_linkage_history: {value: "MESSAGE R12 nodes; the translation to STURM's R11-keyed input is recorded on the seam", status: observed, source: "iiasa/message-ix-models@13ce55d sturm.py (_write_sturm_prices)"}
+    translation:       {see: "AII-D02-D03-seam-messageix-sturm.yaml#pairs.prices"}
+    validity_envelope: {value: "p is an LP dual: it can jump with small demand changes, is not unique on a degenerate solution — measured 2026-10-13: HiGHS reproduces the cutout's objective but returns different fuel prices from CPLEX, so prices are CPLEX's by declaration — and comes back negative or collapsed on some commodities (Siddharth Joshi, 2026-10-07); the linkage floors non-electricity prices at STURM's reference before STURM sees them (seam: pairs.prices.translation.transform)", status: observed, source: "iiasa/message-ix-models@13ce55d sturm.py (_write_sturm_prices); OEF (Francis Li), 2026-10-13 (HiGHS vs CPLEX)"}
+    uncertainty:       {value: null, kind: null, status: n_a, note: "reserved, as for d"}
+
+  ef:                               # NEW 2026-09-22 — the IAM sends emission factors as well as prices (IIASA slide). 2026-10-09: does not cross in the public linkage; kept pending the reference-run spec (seam: pairs.emission_factors.crossing_status)
+    role: active                    # crosses OUT to STURM
+    counterpart: AII-D03.ef
+    description: emission factors per commodity/fuel, used by MESSAGEix-Buildings to report CO2
+    unit:              {value: null, status: pending_owner}
+    convention:        {value: null, status: pending_owner, note: "direct combustion only vs upstream-inclusive; same index as PRICE_COMMODITY?"}
+    temporal_support:  {value: "per model year", status: proposed}
+    spatial_support:   {value: {native: "MESSAGE node; for EXP-01 the R12 node WEU"}, status: proposed}
+    translation:       {see: "AII-D02-D03-seam-messageix-sturm.yaml#pairs.emission_factors"}
+    validity_envelope: {value: null, status: n_a}
+
+  e:
+    role: active                    # to the platform only, never to STURM
+    counterpart: null
+    description: total emissions
+    unit:              {value: "t CO2/yr", status: declared, source: "wrapper-spec (through 2026-09-26; now held only here)"}
+    convention:        {value: "sum over which technologies / sectors — all, or the coupled slice", status: pending_owner}
+    temporal_support:  {value: "per model year", status: declared, source: "wrapper-spec (through 2026-09-26; now held only here)"}
+    spatial_support:   {value: node, status: declared, source: "wrapper-spec (through 2026-09-26; now held only here)"}
+    allocation_basis:  {value: null, status: n_a}
+    mapping_rule:      {value: "scope of the sum (decides comparability with the paper's emissions for EXP-01's ±20 %)", status: pending_owner}
+    validity_envelope: {value: null, status: n_a}
+
+  lam:                              # NEW 2026-10-04 — the dual of the emissions bound; computed already, now exported
+    role: active                    # to the platform only, never to STURM
+    counterpart: null
+    description: carbon shadow price — the dual of the emissions bound set by `cap`
+    unit:              {value: "currency per t CO2", status: guess}
+    convention:        {value: {discount_rate: null, capital_annualisation: null}, status: pending_owner, note: "same convention problem as p (benchmarks finding 1); only comparable across runs that share it"}
+    temporal_support:  {value: "follows cap: one per model year, or one for a cumulative budget", status: pending_owner}
+    spatial_support:   {value: node, status: proposed}
+    allocation_basis:  {value: null, status: n_a}
+    mapping_rule:      {value: null, status: n_a}
+    validity_envelope: {value: "zero whenever the cap does not bind", status: proposed}
+
+  J:
+    role: active                    # to the platform only
+    counterpart: null
+    description: objective value — total discounted system cost over the horizon
+    unit:              {value: "currency (USD)", status: declared, source: "wrapper-spec (through 2026-09-26; now held only here)"}
+    convention:        {value: {discount_rate: null, capital_annualisation: null}, status: pending_owner, note: "never compare across engines or runs without both"}
+    temporal_support:  {value: "the whole horizon (scalar)", status: declared, source: "wrapper-spec (through 2026-09-26; now held only here)"}
+    spatial_support:   {value: "the whole model", status: declared, source: "wrapper-spec (through 2026-09-26; now held only here)"}
+    allocation_basis:  {value: null, status: n_a}
+    mapping_rule:      {value: null, status: n_a}
+    validity_envelope: {value: null, status: n_a}

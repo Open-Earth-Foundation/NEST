@@ -1,0 +1,4 @@
+{"record_type":"nonsense","foo":42}
+{"record_type":"iteration","session_id":"session-0001","iteration":1}
+{"record_type":"spawn","parent_session_id":"session-0001","child_session_id":"session-0002","level":-1}
+{"record_type":"iteration","session_id":"s","iteration":1,"model_id":"m","choice_points":[{"session_id":"s","iteration":1,"candidates":[{"kind":"tool","descriptor":"solve"}],"selected_index":0}]}

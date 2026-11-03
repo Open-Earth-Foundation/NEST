@@ -1,0 +1,96 @@
+# Status: Draft
+# Source: Open-Earth-Foundation/NEST-workspace (private) at commit d09776251bbb2746e5cf53ccb7eb59343bfd76e1, path docs/programme/partners/aii/deliverables/2026-08/AII-D03.boundary.yaml. Copied unchanged below this line. Links into the workspace do not resolve here.
+# AII-D03 — boundary fields for the STURM wrapper blanket (DRAFT sidecar)
+# Mirror of AII-D02: sensory/active reversed on the price/demand pair. Companion to
+# AII-D03-sturm-wrapper.gnn.md (same folder).
+#
+# What lives here vs on the seam: this file holds STURM's NATIVE declaration of each variable.
+# How a value is translated to or from MESSAGEix (temporal alignment, spatial exchange,
+# allocation basis, mapping rule) lives once, on the seam, and is referenced with `see:`.
+#
+# What lives here vs in the GNN spec: the spec owns names, dims, types, roles and connections.
+# This file owns units, conventions, supports, status and provenance. `role` is repeated here
+# only so it can be checked against the spec's ActInfOntologyAnnotation; if they disagree, the spec wins.
+#
+# Status vocabulary: defined once, in AII-D02-D03-seam-messageix-sturm.yaml (with the optional
+# fields added 2026-10-04).
+
+blanket: AII-D03
+model: >-
+  STURM, as named at the 2026-09-22 meeting. CHILLED provides precomputed inputs to STURM and does not
+  run inside the price–demand loop (Shu Nawawi, #147, 2026-10-09); GLANCE excluded (slide); BENCH is not
+  part of the coupling (Alessio Mastrucci, #147, 2026-10-12). The wrapper spec names STURM only.
+spec: AII-D03-sturm-wrapper.gnn.md
+seam: AII-D02-D03-seam-messageix-sturm.yaml
+schema_version: draft-0
+prepared_by: AII (Holly Grimm)
+prepared_on: 2026-09-22
+updated: "2026-10-15 (p.read_by declared — Shu Nawawi 2026-10-14, #147: commercial technology and fuel choices are prescribed, a limitation of the current implementation, not a NEST choice; residential-only price response). 2026-10-13 review fix (Daniel Friedman): components says BENCH is not part of the coupling, matching its source. 2026-10-13 (p: read by the residential runner only — the commercial runner passes price_en = NULL; OEF reproduces the shipped SSP2 outputs row for row at both pins). 2026-10-12 (BENCH closed: not part of the coupling, Alessio; seam_scenario now resolves to the EXP1 cutout). 2026-10-09 (packaged version + dataset candidate = the sturm-weu-messageix-NEST branch; components: CHILLED declared outside the loop; regions and year set observed from the WEU runners; p: R11-keyed input, floor; d: commodity list, 13-year set, R12_WEU output). 2026-10-04 (units now live only here, not in the spec; run tied to the seam's scenario id, matching AII-D02). 2026-09-26 (blanket = native only; one status vocabulary; measured values tagged; drift fixed)"
+sources:
+  - docs/research/boundary-convention-benchmarks.md
+  - "AII-D10 boundary ontology v0.1 — PR #146 (not merged)"
+  - "IIASA, 2026-09-22 coupling meeting — recorded on #147"
+  - "AII run 2026-07-14 on an AII workstation: shipped STURM run headless on its own data, then coupled to the public MESSAGEix Austria tutorial (not the reference run)"
+
+provenance:
+  repository:       {value: "iiasa/message-ix-buildings (R core, Python wrapper)", status: observed, source: aii-run-2026-07-14}
+  packaged_version: {value: null, status: pending_owner, candidate: {value: "iiasa/message-ix-buildings branch sturm-weu-messageix-NEST @ e560643 (Shu Nawawi, 2026-10-08: 'Configure SSP2 WEU runners and R12 MESSAGE reporting' + 'Add SSP2 WEU reference outputs'); 10 commits ahead of main", status: observed, source: "Shu Nawawi #147 2026-10-09; branch read 2026-10-09"}, note: "a dedicated branch, not a release; pin by SHA. Bas (2026-10-09, via Francis Li): IIASA will share its WEU STURM as-is before the DC convening. OEF (2026-10-13, #147): residential and commercial SSP2 run from the public code at @6a9cb8b and at @e560643 and reproduce IIASA's shipped sturm/output row for row, for WEU and for all regions"}
+  dataset:          {value: null, status: pending_owner, candidate: {value: "input_csv_SSP_2023_resid + input_csv_SSP_2023_comm, SSP2, with the climate-zone shares of 2026-01-29; price input sturm/data/input_prices_R12.csv", status: observed, source: "iiasa/message-ix-buildings@e560643 run_STURM_{resid,comm}_WEU_2026.R"}, note: "the shipped `_ex` example dataset is stale vs the code (lacks pop_urt); the full shipped dataset works (aii-run-2026-07-14)"}
+  scope:            {value: "residential + non-residential buildings (commercial less detailed); NO appliances in EXP-01", status: declared, source: iiasa-2026-09-22, note: "was: residential only"}
+  components:       {value: "CHILLED (Python; gridded degree-day demand) -> precomputed inputs to STURM, outside the price–demand loop; STURM (R; material-flow stock turnover + discrete-choice decisions) -> aggregation & reporting; GLANCE excluded; BENCH not part of the coupling (Alessio Mastrucci, 2026-10-12)", status: declared, source: "iiasa-2026-10-09 (Shu Nawawi, #147: 'CHILLED provides precomputed inputs to STURM and does not run inside the price–demand loop'); iiasa-2026-10-12 (Alessio Mastrucci, #147: 'BENCH is simply not part of the STURM-MESSAGE coupling'); iiasa-slide-2026-09-22"}
+  geography_exp01:  {value: "STURM run for the 21 WEU building regions (custom_region_bld in the WEU runners), reported at region_bld and summed to R12_WEU; MESSAGEix side: the R12 region WEU (IIASA 2026-09-22). WEU is not the EU27; the aggregation set is declared on the seam (pairs.demand.translation.spatial.aggregation_set)", status: declared, source: "iiasa-2026-10-09 (Shu Nawawi, #147); iiasa-2026-09-22"}
+  native_time_step: {value: "5 years to 2060, then 10 years to 2100 when run on MESSAGE's years (years_to_run is a runner argument); 5-year native", status: observed, source: "iiasa/message-ix-buildings@e560643 run_STURM_resid_WEU_2026.R; aii-run-2026-07-14"}
+  regions:          {value: "~60 building regions (`region_bld`) in the full model; the WEU runners select 21 (C-WEU-{AUT … SWE} + Türkiye); output node column = R12 (R12_WEU); Austria native as C-WEU-AUT", status: observed, source: "iiasa/message-ix-buildings@e560643 run_STURM_resid_WEU_2026.R (custom_region_bld); aii-run-2026-07-14"}
+  runtime:          {value: "≈ 2 min full residential run; ≈ 20 s selected region; deterministic through the driver", status: observed, source: "aii-run-2026-07-14 (AII workstation — a measurement, not a reference-run figure)"}
+  catalog_conflict: {value: "catalog/models/sturm.yaml says USD/GJ and PJ/yr; the shipped model emits GWa and takes PRICE_COMMODITY as is", status: observed, source: aii-run-2026-07-14, issue: "#152"}
+  seam_scenario:    {see: "AII-D02-D03-seam-messageix-sturm.yaml#scenario.id", note: "the future this run belongs to; must resolve to the same id as AII-D02's run_identity.seam_scenario"}
+
+variables:
+
+  p:
+    role: sensory                   # crosses INTO STURM, from MESSAGEix
+    counterpart: AII-D02.p
+    description: energy prices by fuel type
+    read_by:           {value: "the residential runner only: the commercial runner passes price_en = NULL ('not used in commercial'), so commercial demand is price-insensitive in the shipped code and on the NEST branch — commercial technology and fuel choices are exogenously prescribed, demand is computed dynamically but does not read prices", status: declared, source: "iiasa-2026-10-14 (Shu Nawawi, #147 issuecomment-6162512245, answer 4: a limitation of the current commercial implementation, not something specific to NEST; 'expect price responsiveness from residential STURM only'); code: iiasa/message-ix-buildings@6a9cb8b sturm/model/F10_scenario_runs_MESSAGE_2100.R line 370; @e560643 lines 460 and 495; OEF doubling test (Francis Li, #147 issuecomment-6154237946, 2026-10-13)", note: "seam: pairs.prices.price_response (declared 2026-10-14)"}
+    unit:
+      value: "the PRICE_COMMODITY frame's unit — taken as is"
+      status: observed
+      source: aii-run-2026-07-14
+      note: "STURM's price input accepted MESSAGEix's PRICE_COMMODITY dataframe without conversion; our earlier USD/GJ (from the catalog) was a guess"
+    convention:        {value: {inherits: "AII-D02.p convention (annualisation, discounting)"}, status: pending_owner}
+    temporal_support:  {value: {native: "one value per model year as given in the price file: 2020–2060 by 5, 2070–2110 by 10"}, status: observed, source: "iiasa/message-ix-buildings@e560643 sturm/data/input_prices_R12.csv; aii-run-2026-07-14 (5-year steps)"}
+    spatial_support:   {value: {native: "the price input is keyed by R11 node (R11_WEU … 12 nodes), broadcast to the building regions inside STURM", regions: "region_bld (21 WEU regions in the WEU runners)"}, status: observed, source: "iiasa/message-ix-buildings@e560643 sturm/data/input_prices_R12.csv (node column); iiasa-2026-09-22"}
+    translation:       {see: "AII-D02-D03-seam-messageix-sturm.yaml#pairs.prices"}   # downscaling, alignment, mapping rule, the floor transform
+    validity_envelope:
+      value: "price ratios outside the range STURM's turnover was calibrated on are untested; observed response is small (implied elasticity ≈ 0.13)"
+      status: observed
+      source: aii-run-2026-07-14
+
+  ef:                               # NEW 2026-09-22 — emission factors from the IAM (IIASA slide). 2026-10-09: STURM's WEU reports carry no emissions and the public linkage passes prices only; kept pending the reference-run spec (seam: pairs.emission_factors.crossing_status)
+    role: sensory                   # crosses INTO STURM, from MESSAGEix
+    counterpart: AII-D02.ef
+    description: emission factors per fuel, used to report buildings CO2
+    unit:              {value: null, status: pending_owner, note: "t CO2 per energy unit — which?"}
+    convention:        {value: null, status: pending_owner, note: "direct combustion only vs including electricity's upstream factor"}
+    temporal_support:  {value: {native: "5-year steps"}, status: proposed}
+    spatial_support:   {value: {native: "region_bld (all EU27 countries individually)"}, status: proposed}
+    translation:       {see: "AII-D02-D03-seam-messageix-sturm.yaml#pairs.emission_factors"}
+    validity_envelope: {value: null, status: n_a}
+
+  d:
+    role: active                    # crosses OUT to MESSAGEix
+    counterpart: AII-D02.d
+    description: "final energy demand by subsector × end use × carrier — buildings (residential + commercial), no appliances; 14 energy commodities per subsector, emitted by name (seam: pairs.demand.mapping_rule.fuel_to_commodity). The same report also carries floor-space (Mm2/y) and material (Mt/y) rows at level `demand`, outside the EXP-01 energy loop"
+    unit:
+      value: GWa
+      status: observed
+      source: aii-run-2026-07-14
+      note: "output arrives in exactly the MESSAGE `demand` schema (node / commodity / level / year / time / value / unit); our earlier PJ/yr (from the catalog) was a guess"
+    convention:        {value: "annual final energy per 5-year step; residential + non-residential buildings, no appliances (EXP-01 scope)", status: declared, source: iiasa-2026-09-22}
+    temporal_support:  {value: {native: "one value per MESSAGE model year — 2020–2060 by 5, 2070–2100 by 10 (13 years) in the WEU runners; 5-year native"}, status: observed, source: "iiasa/message-ix-buildings@e560643 run_STURM_resid_WEU_2026.R; sturm/output/report_MESSAGE_resid_WEU_SSP2.csv; aii-run-2026-07-14"}
+    spatial_support:   {value: {native: "region_bld (21 WEU regions in the WEU runners)", output_index: "R12 node column (R12_WEU); the MESSAGE report carries level `final`"}, status: declared, source: "iiasa-2026-10-09 (Shu Nawawi, #147); iiasa-2026-09-22"}
+    translation:       {see: "AII-D02-D03-seam-messageix-sturm.yaml#pairs.demand"}   # alignment, sum into WEU, mapping rule (buildings share)
+    validity_envelope:
+      value: "response is small: implied elasticity ≈ 0.13 (+50 % price -> −1.8 % demand in 2025, −6.2 % in 2050); large price swings untested"
+      status: observed
+      source: aii-run-2026-07-14
