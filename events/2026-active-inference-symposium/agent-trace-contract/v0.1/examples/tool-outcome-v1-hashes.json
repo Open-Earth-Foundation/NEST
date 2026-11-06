@@ -1,0 +1,85 @@
+{
+  "hash_policy": "tool-outcome/v1",
+  "cases": [
+    {
+      "name": "success-unicode",
+      "tool": "retrieve_history",
+      "args": {
+        "query": "México",
+        "mode": "search"
+      },
+      "status": "success",
+      "result": {
+        "city": "México",
+        "count": 1
+      },
+      "error": null,
+      "input_canonical_json": "{\"args\":{\"mode\":\"search\",\"query\":\"México\"},\"tool\":\"retrieve_history\"}",
+      "input_hash": "2a44ecb8794b4cd59031719fe0e691c04bae19c3b10a315f6ff9574e9178325b",
+      "output_canonical_json": "{\"error\":null,\"result\":{\"city\":\"México\",\"count\":1},\"status\":\"success\"}",
+      "output_hash": "2658cdf8f6a0775f2b038a67bb8cb2229bc8d440fd4a8ae6573d766a7be32171"
+    },
+    {
+      "name": "success-null",
+      "tool": "list_sources",
+      "args": {},
+      "status": "success",
+      "result": null,
+      "error": null,
+      "input_canonical_json": "{\"args\":{},\"tool\":\"list_sources\"}",
+      "input_hash": "1f84cd5143afc0c56d9fe4e59051386b84b2fd6dce07238949a05a353c3c3808",
+      "output_canonical_json": "{\"error\":null,\"result\":null,\"status\":\"success\"}",
+      "output_hash": "20112d894945b3b048b9a55b96f209d3cdefcf4df5801cc0de9bd3d8321bee38"
+    },
+    {
+      "name": "failure-null",
+      "tool": "list_sources",
+      "args": {},
+      "status": "failure",
+      "result": null,
+      "error": "TimeoutError",
+      "input_canonical_json": "{\"args\":{},\"tool\":\"list_sources\"}",
+      "input_hash": "1f84cd5143afc0c56d9fe4e59051386b84b2fd6dce07238949a05a353c3c3808",
+      "output_canonical_json": "{\"error\":\"TimeoutError\",\"result\":null,\"status\":\"failure\"}",
+      "output_hash": "d490d6623addd8f9d3abf557130a386346cf6f37a45326215296482b733a532f"
+    },
+    {
+      "name": "failure-result",
+      "tool": "list_sources",
+      "args": {},
+      "status": "failure",
+      "result": {
+        "retryable": true
+      },
+      "error": "ExternalServiceUnavailable",
+      "input_canonical_json": "{\"args\":{},\"tool\":\"list_sources\"}",
+      "input_hash": "1f84cd5143afc0c56d9fe4e59051386b84b2fd6dce07238949a05a353c3c3808",
+      "output_canonical_json": "{\"error\":\"ExternalServiceUnavailable\",\"result\":{\"retryable\":true},\"status\":\"failure\"}",
+      "output_hash": "77115c6168489cd92d180be81ccf836acdcd19a0093f3f6c9985bd382bd75fc9"
+    },
+    {
+      "name": "skipped",
+      "tool": "list_sources",
+      "args": {},
+      "status": "skipped",
+      "result": null,
+      "error": null,
+      "input_canonical_json": "{\"args\":{},\"tool\":\"list_sources\"}",
+      "input_hash": "1f84cd5143afc0c56d9fe4e59051386b84b2fd6dce07238949a05a353c3c3808",
+      "output_canonical_json": null,
+      "output_hash": null
+    },
+    {
+      "name": "malformed",
+      "tool": "list_sources",
+      "args": "{\"unfinished\":",
+      "status": "skipped",
+      "result": null,
+      "error": "Tool arguments were not a valid JSON object",
+      "input_canonical_json": "{\"args\":\"{\\\"unfinished\\\":\",\"tool\":\"list_sources\"}",
+      "input_hash": "7b838d80f5562687369eb5828ea055e2f831a6b0ff43e9dd99dff54131aa09b4",
+      "output_canonical_json": null,
+      "output_hash": null
+    }
+  ]
+}
