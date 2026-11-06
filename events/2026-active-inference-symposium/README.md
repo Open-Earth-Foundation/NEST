@@ -12,7 +12,7 @@ Four things from the consortium's private workspace, copied unchanged at the com
 
 | Folder | What it is | Source commit on the workspace main branch |
 |---|---|---|
-| `seam-record/` | The declared boundary between IIASA's national energy model (MESSAGEix) and its building-stock model (STURM) for Western Europe: the seam record, written once for the pair, and the two blanket files with each model's own declarations. Each exchanged variable carries its unit, convention, temporal and spatial support, mapping rule and owner. | seam record `bb3d5727`, MESSAGEix blanket `6c14c736`, STURM blanket `d0977625` |
+| `seam-record/` | The declared boundary between IIASA's national energy model (MESSAGEix) and its building-stock model (STURM) for Western Europe. The seam record is written once for the pair. Each model also has a Markov blanket written in GNN (Generalized Notation Notation) and a companion boundary file. The GNN file declares the structure: each variable's name, size, type and role (sensory, active or internal). The boundary file gives each exchanged variable its unit, convention, temporal and spatial support, mapping rule and owner. | seam record `bb3d5727`, the two GNN blankets `e56ee114`, MESSAGEix boundary file `6c14c736`, STURM boundary file `d0977625` |
 | `agent-trace-contract/` | The contract that the orchestrator's exported agent trace must satisfy, with its hash policy (`tool-outcome/v1`) and the test vectors an independent reader uses to check the hashes. The `v0` folder is the earlier version with its examples. | README, `v0.1/schema.json` and the hash vectors `1d10d92c`. `v0/schema.json` and `v0/examples/invalid-records.jsonl` `5f691e84`. `v0/examples/coupling-loop-example.jsonl` `bd4243dd` |
 | `calibration-protocol/` | The simulation-based calibration protocol for the Active Inference layer and the record of its first synthetic run, pre-registered before the run. | `e6923581` |
 
@@ -20,9 +20,11 @@ Full commit identifiers are in the source line of each document. The table short
 
 ## What this material is and is not
 
-It is three records and a protocol. It is not a software package that you can install or run. The software that joins the models stays in the private workspace until it is stable, as the repository README says.
+It is a set of records and a protocol. It is not a software package that you can install or run. The software that joins the models stays in the private workspace until it is stable, as the repository README says.
 
 The seam record describes the boundary between two models that IIASA built and maintains. It contains no IIASA model data and no model code. Some fields are marked as pending the owner's answer, and the record says so.
+
+The GNN blankets declare structure, not values. The sizes in brackets (for example `d[2,13,type=float]`) are illustrative, except the 13 model periods. The roles are the declaration. The units, conventions and sources are in the boundary files.
 
 The trace contract describes what an exported agent trace must contain and how its hashes are computed. It contains no orchestrator code and no exported trace. An independent reader can check an export against it. Passing those checks verifies the record. It does not validate the energy-model computation behind it.
 
