@@ -8,7 +8,7 @@ The talk is a 20-minute pre-recorded presentation with three speakers in sequenc
 
 ## What the folder holds
 
-Four things from the consortium's private workspace, copied unchanged at the commit named in each file. Every document starts with a status line and a source line. The data files (schema and example files) carry no lines of their own, so their source commits are listed here.
+Three folders from the consortium's private workspace, copied at the commit named in each file. The copies are unchanged apart from the status line, the source line and some values from IIASA's model package and its guide. Those values are marked `[withheld]` and keep their units. Every document starts with a status line and a source line. The data files (schema and example files) carry no lines of their own, so their source commits are listed here.
 
 | Folder | What it is | Source commit on the workspace main branch |
 |---|---|---|
