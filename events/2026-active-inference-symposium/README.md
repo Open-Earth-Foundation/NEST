@@ -24,7 +24,7 @@ It is a set of records and a protocol. It is not a software package that you can
 
 The seam record describes the boundary between two models that IIASA built and maintains. It contains no IIASA model data and no model code. Some fields are marked as pending the owner's answer, and the record says so.
 
-The GNN blankets declare structure, not values. The sizes in brackets (for example `d[2,13,type=float]`) are illustrative, except the 13 model periods. The roles are the declaration. The units, conventions and sources are in the boundary files.
+The GNN blankets declare structure, not values. The sizes in brackets (for example `d[2,13,type=float]`) are illustrative. The 13 periods are the model years of IIASA's public linkage runs, 2020–2100. The Western Europe cutout that the boundary files name for experiment 1 declares 12 model years, 2030–2110. The roles are the declaration. The units, conventions and sources are in the boundary files.
 
 The trace contract describes what an exported agent trace must contain and how its hashes are computed. It contains no orchestrator code and no exported trace. An independent reader can check an export against it. Passing those checks verifies the record. It does not validate the energy-model computation behind it.
 
@@ -32,9 +32,21 @@ The calibration protocol and its first run use synthetic data from a known gener
 
 Links inside the copied documents that point into the private workspace do not resolve here.
 
+## Slides
+
+The `slides/` folder holds the three speakers' slides as PDF files, in the order of the talk. Each file is an export of the slides used in the recording, made on 7 November 2026.
+
+| File | Speaker | Part |
+|---|---|---|
+| `slides/1-clippinger-a-vision-for-nested-modeling.pdf` | John H. Clippinger | Title and "A Vision for Resolving Nested Multi-Scale Modeling", 9 slides |
+| `slides/2-grimm-the-seam-and-the-audit.pdf` | Holly Grimm | "The seam and the audit", 13 slides |
+| `slides/3-friedman-active-inference-at-the-model-boundary.pdf` | Daniel Ari Friedman | "Active Inference at the model boundary", 8 slides |
+
+The slides show units, structure, counts and ratios. They show no values from IIASA's model package.
+
 ## To come
 
-The slides and the link to the recording will be added after the talk is recorded.
+The link to the recording will be added after the symposium.
 
 ## Licence
 
